@@ -19,6 +19,7 @@ package com.zaxxer.hikari.util;
 import java.util.concurrent.Semaphore;
 
 /**
+ * 此类实现了可用于暂停和恢复池的锁。 它还提供了一个虚假实现，当该功能被禁用时使用，希望能被 JIT 完全“优化掉”。
  * This class implements a lock that can be used to suspend and resume the pool.  It
  * also provides a faux implementation that is used when the feature is disabled that
  * hopefully gets fully "optimized away" by the JIT.
@@ -33,7 +34,7 @@ public class SuspendResumeLock
 
       @Override
       public void release() {}
-      
+
       @Override
       public void suspend() {}
 

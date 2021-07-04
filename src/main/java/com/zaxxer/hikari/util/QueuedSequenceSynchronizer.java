@@ -33,7 +33,7 @@ import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
  *   <li>Upon receiving a <code>true</code> result from {@link #waitUntilSequenceExceeded(long, long)},
  *       the current sequence should again be obtained from the {@link #currentSequence()} method,
  *       and an attempt to acquire the resource should be made. </li>
- *   <li>If the shared resource cannot be acquired, the thread should again call 
+ *   <li>If the shared resource cannot be acquired, the thread should again call
  *       {@link #waitUntilSequenceExceeded(long, long)} with the previously obtained sequence. </li>
  *   <li>If <code>false</code> is received from {@link #waitUntilSequenceExceeded(long, long)}
  *       then a timeout has occurred. </li>
@@ -43,7 +43,7 @@ import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
  * is monotonically increasing, and only {@link LongAdder#increment()} and {@link LongAdder#sum()}
  * are used, it can be relied on to be Sequentially Consistent.
  *
- * @see <a href="http://en.wikipedia.org/wiki/Sequential_consistency">Java Spec</a> 
+ * @see <a href="http://en.wikipedia.org/wiki/Sequential_consistency">Java Spec</a>
  * @author Brett Wooldridge
  */
 public final class QueuedSequenceSynchronizer
@@ -79,9 +79,10 @@ public final class QueuedSequenceSynchronizer
    }
 
    /**
+    * 阻塞当前线程，直到当前序列超过指定的阈值，或者直到达到指定的超时。
     * Block the current thread until the current sequence exceeds the specified threshold, or
     * until the specified timeout is reached.
-    * 
+    *
     * @param sequence the threshold the sequence must reach before this thread becomes unblocked
     * @param nanosTimeout a nanosecond timeout specifying the maximum time to wait
     * @return true if the threshold was reached, false if the wait timed out

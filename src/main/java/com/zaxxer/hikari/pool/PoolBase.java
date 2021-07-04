@@ -352,6 +352,7 @@ abstract class PoolBase
          connection.setCatalog(catalog);
       }
 
+      // 执行连接初始化 Sql
       executeSql(connection, config.getConnectionInitSql(), true);
 
       setNetworkTimeout(connection, networkTimeout);
@@ -511,6 +512,7 @@ abstract class PoolBase
    }
 
    /**
+    * 在指定的数据源上设置 loginTimeout。
     * Set the loginTimeout on the specified DataSource.
     *
     * @param dataSource the DataSource

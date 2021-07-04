@@ -84,6 +84,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 使用指定的监听器构造一个 ConcurrentBag。
     * Construct a ConcurrentBag with the specified listener.
     *
     * @param listener the IBagStateListener to attach to this bag
@@ -111,16 +112,18 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 该方法将从包中借用一个 BagEntry，如果没有可用的则阻塞指定的超时时间。
     * The method will borrow a BagEntry from the bag, blocking for the
     * specified timeout if none are available.
     *
-    * @param timeout how long to wait before giving up, in units of unit
+    * @param timeout how long to wait before giving up, in units of unit(放弃前等待多长时间，以单位为单位)
     * @param timeUnit a <code>TimeUnit</code> determining how to interpret the timeout parameter
-    * @return a borrowed instance from the bag or null if a timeout occurs
+    * @return a borrowed instance from the bag or null if a timeout occurs(如果发生超时，则从包中借用实例或 null)
     * @throws InterruptedException if interrupted while waiting
     */
    public T borrow(long timeout, final TimeUnit timeUnit) throws InterruptedException
    {
+      // 首先尝试线程本地列表
       // Try the thread-local list first
       List<Object> list = threadList.get();
       if (weakThreadLocals && list == null) {
@@ -137,6 +140,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
          }
       }
 
+      // 否则，扫描共享列表...以获得最大超时时间
       // Otherwise, scan the shared list ... for maximum of timeout
       timeout = timeUnit.toNanos(timeout);
       Future<Boolean> addItemFuture = null;
@@ -149,8 +153,12 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
             // scan the shared list
             do {
                startSeq = synchronizer.currentSequence();
+               // 当无可用本地化资源时，遍历全部资源，查看是否存在可用资源
+               // 因此被一个线程本地化的资源也可能被另一个线程“窃取”
                for (T bagEntry : sharedList) {
+                  // 如果状态未使用
                   if (bagEntry.compareAndSet(STATE_NOT_IN_USE, STATE_IN_USE)) {
+                     // 如果我们可能窃取了另一个线程的新连接，请重新启动添加...
                      // if we might have stolen another thread's new connection, restart the add...
                      if (waiters.get() > 1 && addItemFuture == null) {
                         listener.addBagItem();
@@ -166,7 +174,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
             }
 
             timeout = originTimeout - (System.nanoTime() - startScan);
-         } while (timeout > 10_000L && synchronizer.waitUntilSequenceExceeded(startSeq, timeout));
+         } while (timeout > 10_000L && synchronizer.waitUntilSequenceExceeded(startSeq, timeout)); // 未超时并且等待直到超过序列
       }
       finally {
          waiters.decrementAndGet();
@@ -176,11 +184,12 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 这个方法将一个借用的对象返回给包。 从包中借用但从未“归还”的对象将导致内存泄漏。
     * This method will return a borrowed object to the bag.  Objects
     * that are borrowed from the bag but never "requited" will result
     * in a memory leak.
     *
-    * @param bagEntry the value to return to the bag
+    * @param bagEntry the value to return to the bag(返回包中的值)
     * @throws NullPointerException if value is null
     * @throws IllegalStateException if the requited value was not borrowed from the bag
     */
@@ -197,6 +206,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 将新物品添加到包中以供他人借用。
     * Add a new object to the bag for others to borrow.
     *
     * @param bagEntry an object to add to the bag
@@ -213,6 +223,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 从包中取出一个值。此方法只能使用通过 <code>borrow(long, TimeUnit)<code> 或 <code>reserve(T)<code> 获得的对象调用
     * Remove a value from the bag.  This method should only be called
     * with objects obtained by <code>borrow(long, TimeUnit)</code> or <code>reserve(T)</code>
     *
@@ -238,6 +249,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 关闭袋子以进一步添加。
     * Close the bag to further adds.
     */
    @Override
@@ -247,6 +259,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 此方法提供包中 BagEntry 项目处于指定状态的时间“快照”。它不会以任何方式“锁定”或保留项目。在对列表中的项目执行任何操作之前，对它们调用 <code>reserve(T)<code>。
     * This method provides a "snapshot" in time of the BagEntry
     * items in the bag in the specified state.  It does not "lock"
     * or reserve items in any way.  Call <code>reserve(T)</code>
@@ -268,6 +281,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 该方法提供了袋子物品的时间“快照”。它不会以任何方式“锁定”或保留项目。在对列表中的项目执行任何操作之前，对列表中的项目调用 <code>reserve(T)<code>，或了解修改项目的并发影响。
     * This method provides a "snapshot" in time of the bag items.  It
     * does not "lock" or reserve items in any way.  Call <code>reserve(T)</code>
     * on items in the list, or understand the concurrency implications of
@@ -282,6 +296,8 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 该方法用于使包中的物品“不可借”。它主要用于对 <code>values(int)<code> 方法返回的项目进行操作时。
+    * 保留的物品可以通过 <code>remove(T)<code> 从包中取出，无需取消保留。通过调用 <code>unreserve(T)<code> 方法，可以再次借出没有从包中取出的物品。
     * The method is used to make an item in the bag "unavailable" for
     * borrowing.  It is primarily used when wanting to operate on items
     * returned by the <code>values(int)</code> method.  Items that are
@@ -299,6 +315,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 此方法用于使通过 <code>reserve(T)<code> 保留的项目再次可供借用。
     * This method is used to make an item reserved via <code>reserve(T)</code>
     * available again for borrowing.
     *
@@ -315,6 +332,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 获取等待（等待）包中项目可用的线程数。
     * Get the number of threads pending (waiting) for an item from the
     * bag to become available.
     *
@@ -360,6 +378,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    }
 
    /**
+    * 根据该类和系统类加载器之间是否存在自定义的类加载器实现来确定是否使用 WeakReferences。
     * Determine whether to use WeakReferences based on whether there is a
     * custom ClassLoader implementation sitting between this class and the
     * System ClassLoader.

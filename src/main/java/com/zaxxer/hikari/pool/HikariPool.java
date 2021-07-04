@@ -104,6 +104,7 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
       this.totalConnections = new AtomicInteger();
       this.suspendResumeLock = config.isAllowPoolSuspension() ? new SuspendResumeLock() : SuspendResumeLock.FAUX_LOCK;
 
+      // 指标跟踪器
       if (config.getMetricsTrackerFactory() != null) {
          setMetricsTrackerFactory(config.getMetricsTrackerFactory());
       }
@@ -117,6 +118,7 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
 
       checkFailFast();
 
+      // 添加连接|关闭连接 线程池
       ThreadFactory threadFactory = config.getThreadFactory();
       this.addConnectionExecutor = createThreadPoolExecutor(config.getMaximumPoolSize(), poolName + " connection adder", threadFactory, new ThreadPoolExecutor.DiscardPolicy());
       this.closeConnectionExecutor = createThreadPoolExecutor(config.getMaximumPoolSize(), poolName + " connection closer", threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
@@ -148,9 +150,10 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
    }
 
    /**
+    * 从池中获取连接，或在指定的毫秒数后超时。
     * Get a connection from the pool, or timeout after the specified number of milliseconds.
     *
-    * @param hardTimeout the maximum time to wait for a connection from the pool
+    * @param hardTimeout the maximum time to wait for a connection from the pool(等待池中连接的最长时间)
     * @return a java.sql.Connection instance
     * @throws SQLException thrown if a timeout occurs trying to obtain a connection
     */
@@ -159,15 +162,17 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
       suspendResumeLock.acquire();
       final long startTime = clockSource.currentTime();
 
+      // 在超时时间内不断尝试获取连接
       try {
          long timeout = hardTimeout;
          do {
             final PoolEntry poolEntry = connectionBag.borrow(timeout, MILLISECONDS);
             if (poolEntry == null) {
-               break; // We timed out... break and throw exception
+               break; // We timed out... break and throw exception(我们超时了...中断并抛出异常)
             }
 
             final long now = clockSource.currentTime();
+            // 被标记为驱逐 或 已过的最后访问时间 或 连接无效
             if (poolEntry.isMarkedEvicted() || (clockSource.elapsedMillis(poolEntry.lastAccessed, now) > ALIVE_BYPASS_WINDOW_MS && !isConnectionAlive(poolEntry.connection))) {
                closeConnection(poolEntry, "(connection is evicted or dead)"); // Throw away the dead connection (passed max age or failed alive test)
                timeout = hardTimeout - clockSource.elapsedMillis(startTime);
@@ -572,6 +577,7 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
    }
 
    /**
+    * 用于退出空闲连接的管家任务
     * The house keeping task to retire idle connections.
     */
    private class HouseKeeper implements Runnable

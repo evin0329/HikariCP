@@ -17,6 +17,7 @@ package com.zaxxer.hikari.pool;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.locks.LockSupport;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -26,21 +27,22 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.util.DriverDataSource;
 
-public class JdbcDriverTest
-{
+public class JdbcDriverTest {
    private HikariDataSource ds;
 
    @After
-   public void teardown()
-   {
+   public void teardown() {
       if (ds != null) {
          ds.close();
       }
    }
 
+   public static void main(String[] args) throws SQLException {
+      new JdbcDriverTest().driverTest1();
+   }
+
    @Test
-   public void driverTest1() throws SQLException
-   {
+   public void driverTest1() throws SQLException {
       HikariConfig config = new HikariConfig();
       config.setMinimumIdle(1);
       config.setMaximumPoolSize(1);
@@ -57,13 +59,29 @@ public class JdbcDriverTest
       DriverDataSource unwrap = ds.unwrap(DriverDataSource.class);
       Assert.assertNotNull(unwrap);
 
-      Connection connection = ds.getConnection();
-      connection.close();
+      Connection connection1 = ds.getConnection();
+      System.out.println(connection1);
+      Connection connection2 = ds.getConnection();
+               System.out.println(connection2);
+//      for (int i = 0; i < 10; i++) {
+//         new Thread(() -> {
+//            try {
+//               Connection connection = ds.getConnection();
+//               System.out.println(connection);
+//               LockSupport.park();
+//               connection.close();
+//            } catch (SQLException throwables) {
+//               throwables.printStackTrace();
+//            }
+//
+//         }).start();
+//      }
+
+
    }
 
    @Test
-   public void driverTest2() throws SQLException
-   {
+   public void driverTest2() throws SQLException {
       HikariConfig config = new HikariConfig();
 
       config.setMinimumIdle(1);
@@ -74,8 +92,7 @@ public class JdbcDriverTest
 
       try {
          ds = new HikariDataSource(config);
-      }
-      catch (RuntimeException e) {
+      } catch (RuntimeException e) {
          Assert.assertTrue(e.getMessage().contains("claims to not accept"));
       }
    }

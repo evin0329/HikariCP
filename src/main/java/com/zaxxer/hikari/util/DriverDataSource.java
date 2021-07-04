@@ -54,6 +54,7 @@ public final class DriverDataSource implements DataSource
          driverProperties.put("password", driverProperties.getProperty("password", password));
       }
 
+      // 加载驱动
       if (driverClassName != null) {
          Enumeration<Driver> drivers = DriverManager.getDrivers();
          while (drivers.hasMoreElements()) {

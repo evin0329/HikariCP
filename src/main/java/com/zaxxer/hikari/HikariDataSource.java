@@ -65,6 +65,7 @@ public class HikariDataSource extends HikariConfig implements DataSource, Closea
    public HikariDataSource(HikariConfig configuration)
    {
       configuration.validate();
+      // 将HikariConfig配置copy到当前类
       configuration.copyState(this);
 
       LOGGER.info("{} - Started.", configuration.getPoolName());
@@ -79,10 +80,12 @@ public class HikariDataSource extends HikariConfig implements DataSource, Closea
          throw new SQLException("HikariDataSource " + this + " has been closed.");
       }
 
+      // 从池中获取连接
       if (fastPathPool != null) {
          return fastPathPool.getConnection();
       }
 
+      // 创建新的池
       // See http://en.wikipedia.org/wiki/Double-checked_locking#Usage_in_Java
       HikariPool result = pool;
       if (result == null) {
