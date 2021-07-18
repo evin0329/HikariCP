@@ -61,6 +61,7 @@ public class JdbcDriverTest {
 
       Connection connection1 = ds.getConnection();
       System.out.println(connection1);
+      connection1.close();
       Connection connection2 = ds.getConnection();
                System.out.println(connection2);
 //      for (int i = 0; i < 10; i++) {

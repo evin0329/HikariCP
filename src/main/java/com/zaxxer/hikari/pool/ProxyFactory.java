@@ -25,6 +25,7 @@ import java.sql.Statement;
 import com.zaxxer.hikari.util.FastList;
 
 /**
+ * 一个工厂类，它围绕标准 JDBC 接口的实例生成代理
  * A factory class that produces proxies around instances of the standard
  * JDBC interfaces.
  *

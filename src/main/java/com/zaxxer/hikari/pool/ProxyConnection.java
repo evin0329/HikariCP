@@ -37,6 +37,7 @@ import com.zaxxer.hikari.util.ClockSource;
 import com.zaxxer.hikari.util.FastList;
 
 /**
+ * 这是 java.sql.Connection 的代理类。
  * This is the proxy class for java.sql.Connection.
  *
  * @author Brett Wooldridge

@@ -139,6 +139,7 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
    }
 
    /**
+    * 从池中获取连接，或在 connectionTimeout 毫秒后超时。
     * Get a connection from the pool, or timeout after connectionTimeout milliseconds.
     *
     * @return a java.sql.Connection instance
@@ -166,6 +167,7 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
       try {
          long timeout = hardTimeout;
          do {
+            // 租用连接
             final PoolEntry poolEntry = connectionBag.borrow(timeout, MILLISECONDS);
             if (poolEntry == null) {
                break; // We timed out... break and throw exception(我们超时了...中断并抛出异常)
@@ -178,7 +180,9 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
                timeout = hardTimeout - clockSource.elapsedMillis(startTime);
             }
             else {
+               // 记录租用记录
                metricsTracker.recordBorrowStats(poolEntry, startTime);
+               // 创建代理连接
                return poolEntry.createProxyConnection(leakTask.schedule(poolEntry), now);
             }
          } while (timeout > 0L);

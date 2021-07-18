@@ -76,7 +76,7 @@ final class PoolEntry implements IConcurrentBagEntry
    }
 
    /**
-    * 将此条目释放回池。
+    * 释放此条目回到池。
     * Release this entry back to the pool.
     *
     * @param lastAccessed last access time-stamp
