@@ -41,7 +41,7 @@ public class JdbcDriverTest {
       new JdbcDriverTest().driverTest1();
    }
 
-   @Test
+//   @Test
    public void driverTest1() throws SQLException {
       HikariConfig config = new HikariConfig();
       config.setMinimumIdle(1);
@@ -63,7 +63,7 @@ public class JdbcDriverTest {
       System.out.println(connection1);
       connection1.close();
       Connection connection2 = ds.getConnection();
-               System.out.println(connection2);
+      System.out.println(connection2);
 //      for (int i = 0; i < 10; i++) {
 //         new Thread(() -> {
 //            try {

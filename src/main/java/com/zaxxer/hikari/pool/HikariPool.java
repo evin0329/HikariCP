@@ -402,12 +402,14 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
    @Override
    final void releaseConnection(final PoolEntry poolEntry)
    {
+      // 记录连接使用情况
       metricsTracker.recordConnectionUsage(poolEntry);
 
       connectionBag.requite(poolEntry);
    }
 
    /**
+    * 永久关闭真实（底层）连接（吃任何异常）。
     * Permanently close the real (underlying) connection (eat any exception).
     *
     * @param poolEntry poolEntry having the connection to close

@@ -219,6 +219,7 @@ public abstract class ProxyConnection implements Connection
    public final void close() throws SQLException
    {
       // Closing statements can cause connection eviction, so this must run before the conditional below
+      // 关闭语句会导致连接逐出，因此必须在以下条件之前运行
       closeStatements();
 
       if (delegate != ClosedConnection.CLOSED_CONNECTION) {
@@ -245,7 +246,9 @@ public abstract class ProxyConnection implements Connection
             }
          }
          finally {
+            // 将委托连接设置为关闭连接
             delegate = ClosedConnection.CLOSED_CONNECTION;
+            // 放回连接池
             poolEntry.recycle(lastAccess);
          }
       }

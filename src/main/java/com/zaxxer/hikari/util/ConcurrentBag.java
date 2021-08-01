@@ -202,6 +202,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
          threadLocalList.add(weakThreadLocals ? new WeakReference<>(bagEntry) : bagEntry);
       }
 
+      // 唤醒
       synchronizer.signal();
    }
 

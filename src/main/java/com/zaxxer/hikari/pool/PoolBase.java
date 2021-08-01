@@ -623,6 +623,9 @@ abstract class PoolBase
    }
 
    /**
+    *
+    * MetricsTrackerDelegate 的无操作实现，在禁用指标捕获时使用。
+    *
     * A no-op implementation of the MetricsTrackerDelegate that is used when metrics capture is
     * disabled.
     */

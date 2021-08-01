@@ -32,6 +32,7 @@ import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
 import com.zaxxer.hikari.pool.HikariPool;
 
 /**
+ * HikariCP 池化数据源。
  * The HikariCP pooled DataSource.
  *
  * @author Brett Wooldridge

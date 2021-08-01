@@ -98,6 +98,7 @@ public class HikariConfig implements HikariConfigMXBean
 
    static
    {
+      // POOL_NUMBER 对 VM 是全局的，以避免在类加载器范围的环境中重叠池编号
       // POOL_NUMBER is global to the VM to avoid overlapping pool numbers in classloader scoped environments
       final Properties sysProps = System.getProperties();
       AtomicInteger poolNumber = (AtomicInteger) sysProps.get("com.zaxxer.hikari.pool_number");

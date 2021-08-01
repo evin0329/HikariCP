@@ -20,12 +20,15 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
 
 /**
+ * 一个专门的 wait/notify 类，通过使用单调递增的长序列可用于资源跟踪。
  * A specialized wait/notify class useful for resource tracking through the
  * use of a monotonically-increasing long sequence.
  * <p>
+ * 当共享资源可用时，应无条件调用 {@link #signal()} 方法。
  * When a shared resource becomes available the {@link #signal()} method should
  * be called unconditionally.
  * <p>
+ * 希望获取共享资源的线程应该：
  * A thread wishing to acquire a shared resource should: <br>
  * <ul>
  *   <li>Obtain the current sequence from the {@link #currentSequence()} method </li>
@@ -39,6 +42,7 @@ import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
  *       then a timeout has occurred. </li>
  * </ul>
  * <p>
+ * 在 Java 8 及更高版本上运行时，该类利用了当 {@link LongAdder} 单调递增时，仅使用 {@link LongAdder.increment()} 和 {@link LongAddersum()} 的事实，它可以依赖于顺序一致。
  * When running on Java 8 and above, this class leverages the fact that when {@link LongAdder}
  * is monotonically increasing, and only {@link LongAdder#increment()} and {@link LongAdder#sum()}
  * are used, it can be relied on to be Sequentially Consistent.
