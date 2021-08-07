@@ -65,6 +65,7 @@ public final class DriverDataSource implements DataSource
             }
          }
 
+         // 如果驱动为空，则去加载驱动
          if (driver == null) {
             LOGGER.warn("Registered driver with driverClassName={} was not found, trying direct instantiation.", driverClassName);
             try {
@@ -81,6 +82,7 @@ public final class DriverDataSource implements DataSource
          if (driver == null) {
             driver = DriverManager.getDriver(jdbcUrl);
          }
+         // 是否接收jdbc协议
          else if (!driver.acceptsURL(jdbcUrl)) {
             throw new RuntimeException("Driver " + driverClassName + " claims to not accept jdbcUrl, " + jdbcUrl);
          }

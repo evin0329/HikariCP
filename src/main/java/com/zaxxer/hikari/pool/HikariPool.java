@@ -112,6 +112,7 @@ public class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateL
          setMetricRegistry(config.getMetricRegistry());
       }
 
+      // 心跳检查
       setHealthCheckRegistry(config.getHealthCheckRegistry());
 
       registerMBeans(this);

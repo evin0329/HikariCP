@@ -218,6 +218,7 @@ abstract class PoolBase
    // ***********************************************************************
 
    /**
+    * 为 HikariConfig 和 HikariPool 注册 MBean。
     * Register MBeans for HikariConfig and HikariPool.
     *
     * @param hikariPool a HikariPool instance
